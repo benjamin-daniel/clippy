@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/ttacon/chalk"
 	// hash "github.com/benjamin-daniel/clippy/hash"
 	"github.com/benjamin-daniel/clippy/store"
 )
@@ -21,7 +22,7 @@ func main() {
 
 	// Wait for an event
 	<-sigChan
-	fmt.Print("\n Service Shutting Down\n")
+	fmt.Print(chalk.Red, "\nService Shutting Down\n")
 
 	// time.AfterFunc()
 
