@@ -30,7 +30,7 @@ func getLast(db *gorm.DB) *ClipBoardItem {
 }
 
 // AddIfNotPresent added the text to the db if the text isn't the last in the db
-func AddIfNotPresent() {
+func AddIfNotPresent() bool {
 	db, err := gorm.Open("sqlite3", "test.db")
 	if err != nil {
 		panic("failed to connect database")
@@ -45,13 +45,16 @@ func AddIfNotPresent() {
 
 	// this handles when we copy images
 	if currentClip.Text == "" {
-		return
+		return false
 	}
 	lastClip := getLast(db)
 	if currentClip.Hash != lastClip.Hash {
 		db.Create(currentClip)
-		fmt.Println(currentClip)
+		// comment this out to stop go-daemon from coping every clipboard action to the log file
+		// fmt.Println(currentClip)
+		return true
 	}
+	return false
 }
 
 // New Create and returns a new ClipBoardItem

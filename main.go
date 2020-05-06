@@ -1,38 +1,44 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"os/signal"
+	"log"
 	"time"
 
-	"github.com/ttacon/chalk"
-	// hash "github.com/benjamin-daniel/clippy/hash"
 	"github.com/benjamin-daniel/clippy/store"
+	"github.com/sevlyar/go-daemon"
 )
 
+// To terminate the daemon use:
+//  kill `cat sample.pid`
 func main() {
-	// index, _ := hash.GetHash(`should return an hexadecimal`)
+	cntxt := &daemon.Context{
+		PidFileName: "clippy.pid",
+		PidFilePerm: 0644,
+		LogFileName: "clippy.log",
+		LogFilePerm: 0640,
+		WorkDir:     "./",
+		Umask:       027,
+		Args:        []string{"[go-daemon sample]"},
+	}
 
-	// Create a channel to talk with the OS
-	var sigChan = make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt)
+	d, err := cntxt.Reborn()
+	if err != nil {
+		log.Fatal("Unable to run: ", err)
+	}
+	if d != nil {
+		return
+	}
+	defer cntxt.Release()
 
-	go copyOverTime()
+	log.Print("- - - - - - - - - - - - - - -")
+	log.Print("daemon started")
 
-	// Wait for an event
-	<-sigChan
-	fmt.Print(chalk.Red, "\nService Shutting Down\n")
-
-	// time.AfterFunc()
-
-	// store.GetLast()
+	copyOverTime()
 }
 
 func copyOverTime() {
 	for {
 		store.AddIfNotPresent()
 		time.Sleep(500 * time.Millisecond)
-		// time.AfterFunc(500, store.AddIfNotPresent)
 	}
 }
