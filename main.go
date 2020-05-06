@@ -1,24 +1,56 @@
-/*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package main
 
 import (
+	"fmt"
+	"log"
+	"os"
+	"time"
+
 	"github.com/benjamin-daniel/clippy/cmd"
+	"github.com/benjamin-daniel/clippy/store"
+	"github.com/sevlyar/go-daemon"
 )
 
+// To terminate the daemon use:
+//  kill `cat sample.pid`
 func main() {
-	cmd.Execute()
+	if len(os.Args) < 2 {
+		fmt.Println("Just calling ")
+		return
+	}
+	checkStart := os.Args[1:2][0]
+	if checkStart != "start" {
+		cmd.Execute()
+		return
+	}
+	cntxt := &daemon.Context{
+		PidFileName: "clippy.pid",
+		PidFilePerm: 0644,
+		LogFileName: "clippy.log",
+		LogFilePerm: 0640,
+		WorkDir:     "./",
+		Umask:       027,
+		// Args:        []string{"[go-daemon clippy]"},
+	}
+
+	d, err := cntxt.Reborn()
+	if err != nil {
+		log.Fatal("Unable to run: ", err)
+	}
+	if d != nil {
+		return
+	}
+	defer cntxt.Release()
+
+	log.Print("- - - - - - - - - - - - - - -")
+	log.Print("daemon started")
+
+	copyOverTime()
+}
+
+func copyOverTime() {
+	for {
+		store.AddIfNotPresent()
+		time.Sleep(500 * time.Millisecond)
+	}
 }

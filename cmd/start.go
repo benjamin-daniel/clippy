@@ -17,14 +17,9 @@ package cmd
 
 import (
 	"fmt"
-	"log"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/ttacon/chalk"
-
-	"github.com/benjamin-daniel/clippy/store"
-	"github.com/sevlyar/go-daemon"
 )
 
 // startCmd represents the start command
@@ -32,15 +27,13 @@ var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start program in background",
 	Run: func(cmd *cobra.Command, args []string) {
-		// start()
-		fmt.Print(chalk.Green, "Starting Program in the background")
+		fmt.Println(chalk.Green, "Starting Program in the background")
 	},
 	Aliases: []string{"install", "background"},
 }
 
 func init() {
 	rootCmd.AddCommand(startCmd)
-	start()
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
@@ -50,40 +43,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// startCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-// To terminate the daemon use:
-//  kill `cat sample.pid`
-func start() {
-	cntxt := &daemon.Context{
-		PidFileName: "clippy.pid",
-		PidFilePerm: 0644,
-		LogFileName: "clippy.log",
-		LogFilePerm: 0640,
-		WorkDir:     "./",
-		Umask:       027,
-		Args:        []string{"[go-daemon sample]"},
-	}
-
-	d, err := cntxt.Reborn()
-	if err != nil {
-		log.Println("Try running: kill `cat clippy.pid`")
-		log.Fatal("Unable to run: ", err)
-	}
-	if d != nil {
-		return
-	}
-	defer cntxt.Release()
-
-	log.Print("- - - - - - - - - - - - - - -")
-	log.Print("daemon started")
-
-	copyOverTime()
-}
-
-func copyOverTime() {
-	for {
-		store.AddIfNotPresent()
-		time.Sleep(500 * time.Millisecond)
-	}
 }

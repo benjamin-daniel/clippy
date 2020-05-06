@@ -23,7 +23,21 @@ func (clip *ClipBoardItem) String() string {
 	return fmt.Sprintf("Text: %s \nHash: %s\nCreated: %s\n", clip.Text, clip.Hash, clip.CreatedAt)
 }
 
-func getLast(db *gorm.DB) *ClipBoardItem {
+// TruncateText is used to truncate text
+func (clip *ClipBoardItem) TruncateText(num int) (bnoden string) {
+	str := clip.Text
+	// bnoden := str
+	if len(str) > num {
+		if num > 3 {
+			num -= 3
+		}
+		bnoden = str[0:num] + "..."
+	}
+	return bnoden
+}
+
+// GetLast returns last clipboard item
+func GetLast(db *gorm.DB) *ClipBoardItem {
 	clip := &ClipBoardItem{}
 	db.Last(clip)
 	return clip
@@ -47,7 +61,7 @@ func AddIfNotPresent() bool {
 	if currentClip.Text == "" {
 		return false
 	}
-	lastClip := getLast(db)
+	lastClip := GetLast(db)
 	if currentClip.Hash != lastClip.Hash {
 		db.Create(currentClip)
 		// comment this out to stop go-daemon from coping every clipboard action to the log file
