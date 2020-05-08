@@ -7,15 +7,14 @@ import (
 )
 
 // GetHash gets the sha1 hash of a string and returns it
-func GetHash (s string) (hash string, err error) {
+func GetHash(s string) (hash string, err error) {
 	h := sha1.New()
 
-
 	_, err = h.Write([]byte(s))
-	if (err != nil) {
+	if err != nil {
 		return "", err
 	}
-	
+
 	bs := h.Sum(nil)
 	hash = hex.EncodeToString(bs)
 	return hash, nil
