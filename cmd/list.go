@@ -21,7 +21,9 @@ import (
 	"text/tabwriter"
 
 	"github.com/benjamin-daniel/clippy/store"
+	"github.com/jinzhu/gorm"
 	"github.com/spf13/cobra"
+	"github.com/ttacon/chalk"
 )
 
 // listCmd represents the list command
@@ -35,17 +37,16 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		last := store.New()
-		fmt.Println(last.TruncateText(50))
-		fmt.Printf("|%-30d|%-30s|\n", last.ID, last.TruncateText(50))
-		// fmt.Printf("|%6d|%6d|\n", 12, 345)
-
-		// fmt.Printf("|%6.2s|%6.2f|\n", last.ID, last.Text)
-		return nil
+		limit, err := cmd.Flags().GetInt("limit")
+		if err != nil {
+			return err
+		}
+		return listClipBoardItems(limit)
 	},
 }
 
 func init() {
+	listCmd.Flags().Int("limit", 20, "Limit the amount of clipboard items printed")
 	rootCmd.AddCommand(listCmd)
 	// fmt.Println(cntxt)
 	// cntxt = nil
@@ -53,21 +54,29 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
+	listCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func listClipBoardItems() {
+func listClipBoardItems(limit int) error {
 	// Observe how the b's and the d's, despite appearing in the
 	// second cell of each line, belong to different columns.
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.AlignRight|tabwriter.Debug)
-	fmt.Fprintln(w, "a\tb\tc")
-	fmt.Fprintln(w, "aa\tbb\tcc")
-	fmt.Fprintln(w, "aaa\t") // trailing tab
-	fmt.Fprintln(w, "aaaa\tdddd\teeee")
+	db, err := gorm.Open("sqlite3", "test.db")
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
+	var clips []store.ClipBoardItem
+	db.Limit(limit).Order("id desc").Find(&clips)
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 30, ' ', tabwriter.Escape)
+	fmt.Fprintln(w, chalk.Blue, fmt.Sprintf("%s\t%s", "ID", "Text"), chalk.Reset)
+	for i := 0; i < len(clips); i++ {
+		clip := clips[i]
+		fmt.Fprintln(w, fmt.Sprintf("%d\t%s", clip.ID, clip.TruncateText(50)))
+	}
 	w.Flush()
-
+	return nil
 }

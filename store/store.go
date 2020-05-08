@@ -5,6 +5,7 @@ import (
 
 	// "github.com/benjamin-daniel/clippy/clip"
 	"fmt"
+	"strings"
 
 	"github.com/atotto/clipboard"
 	hash "github.com/benjamin-daniel/clippy/hash"
@@ -24,9 +25,14 @@ func (clip *ClipBoardItem) String() string {
 }
 
 // TruncateText is used to truncate text
-func (clip *ClipBoardItem) TruncateText(num int) (bnoden string) {
+func (clip *ClipBoardItem) TruncateText(num int) string {
 	str := clip.Text
-	// bnoden := str
+	str = strings.Trim(str, "\t \n")
+
+	bnoden := strings.Trim(str, "\t \n")
+	bnoden = strings.Split(bnoden, "\n")[0]
+	// bnoden = strings.TrimSpace(bnoden)
+	// fmt.Println(str)
 	if len(str) > num {
 		if num > 3 {
 			num -= 3
@@ -74,6 +80,7 @@ func AddIfNotPresent() bool {
 // New Create and returns a new ClipBoardItem
 func New() *ClipBoardItem {
 	text, err := clipboard.ReadAll()
+	text = strings.Trim(text, "\t \n")
 	if err != nil {
 		panic("There was an error getting your clipboard")
 	}
