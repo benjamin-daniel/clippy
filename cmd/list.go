@@ -18,7 +18,6 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
 	"strings"
 
@@ -28,53 +27,7 @@ import (
 	"github.com/ttacon/chalk"
 )
 
-// Page represents a page in the document
-type Page struct {
-	page  int
-	limit float64
-	count float64
-	skip  int
-	max   int
-}
-
-var listPage *Page
-
-func (p *Page) init() {
-	limit := int(p.limit)
-	p.skip = (p.page * limit) - limit
-	p.max = int(math.Ceil(p.count / p.limit))
-}
-
-func (p *Page) nextPage() {
-	p.page++
-	p.init()
-}
-
-func (p *Page) prevPage() {
-	if p.page == 1 {
-		return
-	}
-	p.page--
-	p.init()
-}
-
-func (p *Page) end() bool {
-	return p.page >= p.max
-}
-
-func (p *Page) more() bool {
-	return p.page < p.max
-}
-
-func (p *Page) String() string {
-	return fmt.Sprintf("Page: %d\t Limit: %f\tCount:%f\t Skip: %d Max: %d More: %t End: %t\n", p.page, p.limit, p.count, p.skip, p.max, p.more(), p.end())
-}
-func (p *Page) pretty() string {
-	return fmt.Sprintf("%sPage %d of %d%s", chalk.Blue, p.page, p.max, chalk.Reset)
-}
-func (p *Page) commands() string {
-	return fmt.Sprintf("Please enter \nlast: to view last page\nnext: to view next page\nprev: to view previous page\nexit: to exit the shell")
-}
+var listPage *store.Page
 
 // opens a constant connection
 var db *gorm.DB
@@ -111,7 +64,7 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			panic(err)
 		}
-		if !listPage.end() {
+		if !listPage.End() {
 			ask(limit)
 		}
 	},
@@ -135,11 +88,9 @@ func init() {
 }
 
 func listClipBoardItems(limit int) error {
-	// Observe how the b's and the d's, despite appearing in the
-	// second cell of each line, belong to different columns.
 	var clips []*store.ClipBoardItem
-	listPage = &Page{limit: float64(limit), page: 1}
-	db.Limit(limit).Order("id desc").Find(&clips).Count(&listPage.count)
+	listPage = &store.Page{Limit: float64(limit), Page: 1}
+	db.Limit(limit).Order("id desc").Find(&clips).Count(&listPage.Count)
 	printClip(clips)
 	return nil
 }
@@ -148,12 +99,12 @@ func printClip(clips []*store.ClipBoardItem) {
 		clip := clips[i]
 		fmt.Printf("  %d\t%s\n", clip.ID, clip.TruncateText(50))
 	}
-	listPage.init()
-	fmt.Println(listPage.pretty())
+	listPage.Init()
+	fmt.Println(listPage.Pretty())
 }
 func ask(limit int) error {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Fprintln(os.Stderr, listPage.commands())
+	fmt.Fprintln(os.Stderr, listPage.Commands())
 	for {
 		s, err := reader.ReadString('\n')
 		if err != nil {
@@ -163,35 +114,35 @@ func ask(limit int) error {
 		s = strings.ToLower(s)
 		switch s {
 		case "next":
-			listPage.nextPage()
+			listPage.NextPage()
 			var clips []*store.ClipBoardItem
-			db.Offset(listPage.skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
+			db.Offset(listPage.Skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
 			printClip(clips)
-			if listPage.end() {
+			if listPage.End() {
 				fmt.Println(chalk.Magenta, "End of list", chalk.Reset)
 				return nil
 			}
-			fmt.Fprintln(os.Stderr, listPage.commands())
+			fmt.Fprintln(os.Stderr, listPage.Commands())
 			continue
 		case "prev":
-			listPage.prevPage()
+			listPage.PrevPage()
 			var clips []*store.ClipBoardItem
 			// fmt.Println(listPage)
-			db.Offset(listPage.skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
+			db.Offset(listPage.Skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
 			printClip(clips)
 			continue
 		case "last":
-			listPage.page = listPage.max
-			listPage.init()
+			listPage.Page = listPage.Max
+			listPage.Init()
 			var clips []*store.ClipBoardItem
 			// fmt.Println(listPage)
-			db.Offset(listPage.skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
+			db.Offset(listPage.Skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
 			printClip(clips)
 			return nil
 		case "exit":
 			return nil
 		default:
-			fmt.Fprintln(os.Stderr, listPage.commands())
+			fmt.Fprintln(os.Stderr, listPage.Commands())
 			continue
 		}
 	}
