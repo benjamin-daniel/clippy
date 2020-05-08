@@ -10,6 +10,8 @@ import (
 	"github.com/atotto/clipboard"
 	hash "github.com/benjamin-daniel/clippy/hash"
 	"github.com/jinzhu/gorm"
+
+	// this is to import the sqlite dialect
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
