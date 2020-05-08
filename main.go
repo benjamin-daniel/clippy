@@ -11,6 +11,17 @@ import (
 	"github.com/sevlyar/go-daemon"
 )
 
+// Path is the path to the folder that holds our data
+var Path string = "/usr/local/clippy"
+
+func init() {
+	f, err := os.OpenFile(Path+"/test.db", os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+}
+
 // To terminate the daemon use:
 //  kill `cat sample.pid`
 func main() {
@@ -23,13 +34,18 @@ func main() {
 		cmd.Execute()
 		return
 	}
+	err := os.MkdirAll(Path, 0777)
+	if err != nil {
+		log.Fatalf("MkdirAll %q: %s", Path, err)
+	}
 	cntxt := &daemon.Context{
 		PidFileName: "clippy.pid",
 		PidFilePerm: 0644,
 		LogFileName: "clippy.log",
 		LogFilePerm: 0640,
-		WorkDir:     "./",
-		Umask:       027,
+		// WorkDir:     "./",
+		WorkDir: Path,
+		Umask:   027,
 		// Args:        []string{"[go-daemon clippy]"},
 	}
 

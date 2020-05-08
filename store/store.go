@@ -15,6 +15,8 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
+var path = "/usr/local/clippy"
+
 // ClipBoardItem holds the string of the clipboard and hash
 type ClipBoardItem struct {
 	gorm.Model
@@ -53,7 +55,7 @@ func GetLast(db *gorm.DB) *ClipBoardItem {
 
 // AddIfNotPresent added the text to the db if the text isn't the last in the db
 func AddIfNotPresent() bool {
-	db, err := gorm.Open("sqlite3", "test.db")
+	db, err := gorm.Open("sqlite3", path+"/test.db")
 	if err != nil {
 		panic("failed to connect database")
 	}

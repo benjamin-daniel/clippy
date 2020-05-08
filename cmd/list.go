@@ -32,6 +32,8 @@ var listPage *store.Page
 // opens a constant connection
 var db *gorm.DB
 
+var path string = "/usr/local/clippy"
+
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
@@ -44,7 +46,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		var err error
-		db, err = gorm.Open("sqlite3", "test.db")
+		db, err = gorm.Open("sqlite3", path+"/test.db")
 		if err != nil {
 			return err
 			// panic("failed to connect database")
