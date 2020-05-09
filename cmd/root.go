@@ -28,7 +28,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "clippy",
 	Short: "A clipboard helper tool",
-	Long: `Cliipy is an effective tool to help work with clipboard, 
+	Long: `Cliipy is an effective tool to help work with your clipboard, 
 by storing clipboard history, and giving you the ability to do what you want with it. `,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
