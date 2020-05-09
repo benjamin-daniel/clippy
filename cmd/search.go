@@ -32,6 +32,7 @@ var searchCmd = &cobra.Command{
 }
 
 func init() {
+	searchCmd.Flags().Int("limit", 20, "Limit the amount of clipboard items printed")
 	rootCmd.AddCommand(searchCmd)
 
 	// Here you will define your flags and configuration settings.
