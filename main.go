@@ -34,17 +34,24 @@ func main() {
 		cmd.Execute()
 		return
 	}
-	err := os.MkdirAll(Path, 0777)
+	path, err:=os.Getwd()
 	if err != nil {
-		log.Fatalf("MkdirAll %q: %s", Path, err)
+		panic(err)
 	}
+	if path != Path {
+		log.Fatalf("Path needs to be %s", Path)
+	}
+	// err := os.MkdirAll(Path, 0777)
+	// if err != nil {
+	// 	log.Fatalf("MkdirAll %q: %s", Path, err)
+	// }
 	cntxt := &daemon.Context{
 		PidFileName: "clippy.pid",
 		PidFilePerm: 0644,
 		LogFileName: "clippy.log",
 		LogFilePerm: 0640,
-		// WorkDir:     "./",
-		WorkDir: Path,
+		WorkDir:     "./",
+		// WorkDir: Path,
 		Umask:   027,
 		// Args:        []string{"[go-daemon clippy]"},
 	}
