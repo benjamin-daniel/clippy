@@ -91,13 +91,17 @@ func init() {
 }
 
 func listClipBoardItems(limit int) error {
-	var clips []*store.ClipBoardItem
+	var clips store.ClipBoardItems
 	listPage = &store.Page{Limit: float64(limit), Page: 1}
 	db.Limit(limit).Order("id desc").Find(&clips).Count(&listPage.Count)
-	printClip(clips)
+	clips.Print(pageN)
 	return nil
 }
-func printClip(clips []*store.ClipBoardItem) {
+func pageN() {
+	listPage.Init()
+	fmt.Println(listPage.Pretty())
+}
+func printClip(clips store.ClipBoardItems) {
 	for i := 0; i < len(clips); i++ {
 		clip := clips[i]
 		fmt.Printf("  %d\t%s\n", clip.ID, clip.TruncateText(50))
@@ -110,9 +114,9 @@ func ask(limit int) error {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Fprintln(os.Stderr, listPage.Commands())
 	mainQuery := func() {
-		var clips []*store.ClipBoardItem
+		var clips store.ClipBoardItems
 		db.Offset(listPage.Skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
-		printClip(clips)
+		clips.Print(pageN)
 	}
 	for {
 		s, err := reader.ReadString('\n')

@@ -24,6 +24,9 @@ type ClipBoardItem struct {
 	Hash string
 }
 
+// ClipBoardItems contains a list of clipboard item
+type ClipBoardItems []*ClipBoardItem
+
 func (clip *ClipBoardItem) String() string {
 	return fmt.Sprintf("Text: %s \nHash: %s\nCreated: %s\n", clip.Text, clip.Hash, clip.CreatedAt)
 }
@@ -51,6 +54,15 @@ func GetLast(db *gorm.DB) *ClipBoardItem {
 	clip := &ClipBoardItem{}
 	db.Last(clip)
 	return clip
+}
+
+// Print prints out the clipboard items in a nice format
+func (clips ClipBoardItems) Print(afterPrint func()) {
+	for i := 0; i < len(clips); i++ {
+		clip := clips[i]
+		fmt.Printf("  %d\t%s\n", clip.ID, clip.TruncateText(50))
+	}
+	afterPrint()
 }
 
 // AddIfNotPresent added the text to the db if the text isn't the last in the db
