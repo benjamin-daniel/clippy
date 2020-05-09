@@ -16,8 +16,11 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
+	"errors"
+	"strings"
 
+	"github.com/benjamin-daniel/clippy/store"
+	"github.com/jinzhu/gorm"
 	"github.com/spf13/cobra"
 )
 
@@ -26,9 +29,50 @@ var searchCmd = &cobra.Command{
 	Use:   "search",
 	Short: "Search your clipboard history",
 	Long:  `Search your keyboard history with a keyword`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("search called")
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		var err error
+		db, err = gorm.Open("sqlite3", path+"/test.db")
+		if err != nil {
+			return err
+			// panic("failed to connect database")
+		}
+		return nil
 	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		limit, err := cmd.Flags().GetInt("limit")
+		if err != nil {
+			return err
+		}
+		return searchClipBoardItems(limit)
+	},
+	PostRunE: func(cmd *cobra.Command, args []string) error {
+		defer db.Close()
+		limit, err := cmd.Flags().GetInt("limit")
+		if err != nil {
+			panic(err)
+		}
+		if len(strings.TrimSpace(args[0])) < 2 {
+			errors.New("You need to proved a search string")
+		}
+		like := "%" + args[0] + "%"
+		mainQuery := func() {
+			var clips store.ClipBoardItems
+			db.Offset(listPage.Skip).Limit(limit).Order("id desc").Where("text LIKE ?", like).Find(&clips) //.Count(&listPage.count)
+			clips.Print(pageN)
+		}
+		if !listPage.End() {
+			return ask(limit, mainQuery)
+		}
+		return nil
+	},
+}
+
+func searchClipBoardItems(limit int) error {
+	var clips store.ClipBoardItems
+	listPage = &store.Page{Limit: float64(limit), Page: 1}
+	db.Limit(limit).Order("id desc").Where("text LIKE ?", "%clippy%").Find(&clips).Count(&listPage.Count)
+	clips.Print(pageN)
+	return nil
 }
 
 func init() {
