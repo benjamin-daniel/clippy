@@ -5,7 +5,7 @@ Cliipy is an effective tool to help work with your clipboard, it works by storin
 You can search through your clipboard history, list and start the program as a background process.
 
 ## Installation
-```shell
+```shel
 chmod +x ./scripts 
 cd scripts
 ./install.sh
@@ -16,7 +16,9 @@ Clippy should be running in the background.
 Then you should exposed to these command
 ### Available Commands:
   list        list your clipboard history
+
   search      Search your clipboard history
+
   start       Start program in background
   
 ## Example
