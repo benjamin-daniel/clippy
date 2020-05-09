@@ -1,6 +1,6 @@
 # Clippy
 
-Cliipy is an effective tool to help work with your clipboard, by storing clipboard history, and giving you the ability to do what you want with it.
+Cliipy is an effective tool to help work with your clipboard, it works by storing clipboard history, and giving you the ability to do what you want with it.
 
 You can search through your clipboard history, list and start the program as a background process.
 
