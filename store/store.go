@@ -66,12 +66,7 @@ func (clips ClipBoardItems) Print(afterPrint func()) {
 }
 
 // AddIfNotPresent added the text to the db if the text isn't the last in the db
-func AddIfNotPresent() bool {
-	db, err := gorm.Open("sqlite3", path+"/test.db")
-	if err != nil {
-		panic("failed to connect database")
-	}
-	defer db.Close()
+func AddIfNotPresent(db *gorm.DB) bool {
 	// Migrate the schema
 	db.AutoMigrate(&ClipBoardItem{})
 

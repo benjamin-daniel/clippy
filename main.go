@@ -8,11 +8,15 @@ import (
 
 	"github.com/benjamin-daniel/clippy/cmd"
 	"github.com/benjamin-daniel/clippy/store"
+	"github.com/jinzhu/gorm"
 	"github.com/sevlyar/go-daemon"
 )
 
 // Path is the path to the folder that holds our data
 var Path string = "/usr/local/clippy"
+
+// opens a constant connection
+var db *gorm.DB
 
 func init() {
 	f, err := os.OpenFile(Path+"/test.db", os.O_CREATE|os.O_WRONLY, 0644)
@@ -25,8 +29,14 @@ func init() {
 // To terminate the daemon use:
 //  kill `cat sample.pid`
 func main() {
+	db, err := gorm.Open("sqlite3", Path+"/test.db")
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
 	if len(os.Args) < 2 {
 		fmt.Println("Just calling ")
+		// copyOverTime(db)
 		return
 	}
 	checkStart := os.Args[1:2][0]
@@ -34,7 +44,7 @@ func main() {
 		cmd.Execute()
 		return
 	}
-	path, err:=os.Getwd()
+	path, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +62,7 @@ func main() {
 		LogFilePerm: 0640,
 		WorkDir:     "./",
 		// WorkDir: Path,
-		Umask:   027,
+		Umask: 027,
 		// Args:        []string{"[go-daemon clippy]"},
 	}
 
@@ -68,12 +78,12 @@ func main() {
 	log.Print("- - - - - - - - - - - - - - -")
 	log.Print("daemon started")
 
-	copyOverTime()
+	copyOverTime(db)
 }
 
-func copyOverTime() {
+func copyOverTime(db *gorm.DB) {
 	for {
-		store.AddIfNotPresent()
+		store.AddIfNotPresent(db)
 		time.Sleep(500 * time.Millisecond)
 	}
 }
