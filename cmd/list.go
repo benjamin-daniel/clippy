@@ -105,9 +105,15 @@ func printClip(clips []*store.ClipBoardItem) {
 	listPage.Init()
 	fmt.Println(listPage.Pretty())
 }
+
 func ask(limit int) error {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Fprintln(os.Stderr, listPage.Commands())
+	mainQuery := func() {
+		var clips []*store.ClipBoardItem
+		db.Offset(listPage.Skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
+		printClip(clips)
+	}
 	for {
 		s, err := reader.ReadString('\n')
 		if err != nil {
@@ -118,9 +124,7 @@ func ask(limit int) error {
 		switch s {
 		case "next":
 			listPage.NextPage()
-			var clips []*store.ClipBoardItem
-			db.Offset(listPage.Skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
-			printClip(clips)
+			mainQuery()
 			if listPage.End() {
 				fmt.Println(chalk.Magenta, "End of list", chalk.Reset)
 				return nil
@@ -129,18 +133,13 @@ func ask(limit int) error {
 			continue
 		case "prev":
 			listPage.PrevPage()
-			var clips []*store.ClipBoardItem
-			// fmt.Println(listPage)
-			db.Offset(listPage.Skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
-			printClip(clips)
+			mainQuery()
+			fmt.Fprintln(os.Stderr, listPage.Commands())
 			continue
 		case "last":
 			listPage.Page = listPage.Max
 			listPage.Init()
-			var clips []*store.ClipBoardItem
-			// fmt.Println(listPage)
-			db.Offset(listPage.Skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
-			printClip(clips)
+			mainQuery()
 			return nil
 		case "exit":
 			return nil
