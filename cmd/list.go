@@ -50,7 +50,6 @@ to quickly create a Cobra application.`,
 		db, err = gorm.Open("sqlite3", path+"/test.db")
 		if err != nil {
 			return err
-			// panic("failed to connect database")
 		}
 		return nil
 	},

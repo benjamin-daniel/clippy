@@ -36,7 +36,6 @@ var searchCmd = &cobra.Command{
 		db, err = gorm.Open("sqlite3", path+"/test.db")
 		if err != nil {
 			return err
-			// panic("failed to connect database")
 		}
 		return nil
 	},
