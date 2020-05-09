@@ -24,6 +24,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var like string
+
 // searchCmd represents the search command
 var searchCmd = &cobra.Command{
 	Use:   "search",
@@ -43,18 +45,19 @@ var searchCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return searchClipBoardItems(limit)
+		like = strings.TrimSpace(args[0])
+		if len(like) < 2 {
+			return errors.New("You need to proved a valid search string")
+		}
+		like = "%" + args[0] + "%"
+		return searchClipBoardItems(limit, like)
 	},
 	PostRunE: func(cmd *cobra.Command, args []string) error {
 		defer db.Close()
 		limit, err := cmd.Flags().GetInt("limit")
 		if err != nil {
-			panic(err)
+			return (err)
 		}
-		if len(strings.TrimSpace(args[0])) < 2 {
-			errors.New("You need to proved a search string")
-		}
-		like := "%" + args[0] + "%"
 		mainQuery := func() {
 			var clips store.ClipBoardItems
 			db.Offset(listPage.Skip).Limit(limit).Order("id desc").Where("text LIKE ?", like).Find(&clips) //.Count(&listPage.count)
@@ -67,10 +70,10 @@ var searchCmd = &cobra.Command{
 	},
 }
 
-func searchClipBoardItems(limit int) error {
+func searchClipBoardItems(limit int, like string) error {
 	var clips store.ClipBoardItems
 	listPage = &store.Page{Limit: float64(limit), Page: 1}
-	db.Limit(limit).Order("id desc").Where("text LIKE ?", "%clippy%").Find(&clips).Count(&listPage.Count)
+	db.Limit(limit).Order("id desc").Where("text LIKE ?", like).Find(&clips).Count(&listPage.Count)
 	clips.Print(pageN)
 	return nil
 }
