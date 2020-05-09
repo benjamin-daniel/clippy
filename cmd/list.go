@@ -61,15 +61,21 @@ to quickly create a Cobra application.`,
 		}
 		return listClipBoardItems(limit)
 	},
-	PostRun: func(cmd *cobra.Command, args []string) {
+	PostRunE: func(cmd *cobra.Command, args []string) error {
 		defer db.Close()
 		limit, err := cmd.Flags().GetInt("limit")
 		if err != nil {
-			panic(err)
+			return (err)
+		}
+		mainQuery := func() {
+			var clips store.ClipBoardItems
+			db.Offset(listPage.Skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
+			clips.Print(pageN)
 		}
 		if !listPage.End() {
-			ask(limit)
+			return ask(limit, mainQuery)
 		}
+		return nil
 	},
 }
 
@@ -110,18 +116,13 @@ func printClip(clips store.ClipBoardItems) {
 	fmt.Println(listPage.Pretty())
 }
 
-func ask(limit int) error {
+func ask(limit int, mainQuery func()) error {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Fprintln(os.Stderr, listPage.Commands())
-	mainQuery := func() {
-		var clips store.ClipBoardItems
-		db.Offset(listPage.Skip).Limit(limit).Order("id desc").Find(&clips) //.Count(&listPage.count)
-		clips.Print(pageN)
-	}
 	for {
 		s, err := reader.ReadString('\n')
 		if err != nil {
-			panic(err)
+			return (err)
 		}
 		s = strings.TrimSuffix(s, "\n")
 		s = strings.ToLower(s)
