@@ -16,7 +16,9 @@ Clippy should be running in the background.
 Then you should exposed to these command
 Available Commands:
   list        list your clipboard history
+  
   search      Search your clipboard history
+  
   start       Start program in background
   
 ## Example
